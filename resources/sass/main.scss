@@ -1,0 +1,39 @@
+html, body{
+    background-color: $bg-color;
+    color: $font-color;
+    font-family: 'Nunito';
+    overflow-x: hidden;
+}
+
+a{
+    color: $font-color;
+
+    &:hover{
+        color: $font-color;
+    }
+     
+}
+
+main{
+    position: relative;
+}
+
+#mainBackgroundVideo{
+    object-fit: cover;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 0px;
+    user-select: none;
+}
+
+span.required{
+    color:rgb(255, 83, 83);
+}
+
+.alert{
+    position: absolute;
+    z-index: 100;
+}

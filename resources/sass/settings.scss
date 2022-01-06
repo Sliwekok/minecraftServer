@@ -1,0 +1,211 @@
+nav#dashboard{
+
+    display: inline-flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: start;
+
+    #logo{
+        text-align: center;
+    }
+
+    #menu{
+        margin-top: 10vh;
+        margin-left: 5vh;
+
+        .menuItem{
+            transition: background-color 0.25s;
+            padding: 1.75vh;
+            cursor: pointer;
+
+            &:hover{
+                background-color: lighten($bg-color, 15%);
+            }
+
+            &:last-child{
+                margin-top: 25vh;
+            }
+
+        }
+
+    }
+    
+}
+main#settings {
+
+    margin-top: 10vh;
+
+}
+
+/* 
+|   main container, but depends on page, 
+|   there are different styles, applying only to required one
+*/
+main{
+
+    display: inline-block;
+
+    // scss for settings/ homepage if no servers found
+    #noServersFound{
+
+        text-align: center;
+
+        #add{
+
+            margin-top: 10vh;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 2vh;
+            transition: background-color 0.25s;
+            position: absolute; 
+
+            &:hover{
+                background: rgba(255, 255, 255, 0.185);
+            }
+            p{
+                user-select: none;
+            }
+            i{
+                font-size: 1.5rem;
+            }
+        }
+
+    }
+
+    // scss for settings/ homepage with server
+    #serverFound{
+        
+        #generalData.offline{
+            border:3px $error solid;
+        }
+        #generalData.online{
+            border: 3px $okay solid;
+        }
+
+        #generalData{
+            
+            background-color: darken($bg-color, 10);
+            text-align: center;
+            padding: 0px;
+
+            #copy{
+                cursor: pointer;
+                padding: 1.5vh 2.5%;
+                font-size: 2rem;
+                margin: 0px;
+            }
+
+            #onlineStatus{
+                width: 100%;
+                font-size: 1.25rem;
+                color: lighten($font-color, 15);
+                padding: 1.25vh;
+                p{
+                    margin-bottom: 0px;
+                }
+            }
+
+        }
+
+        #serverAction{
+            display:flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5vh;
+            background-color: $error;
+            text-align: center;
+            font-size: 1.5rem;
+            padding: 1.5vh;
+            cursor: pointer; 
+
+            p{
+                margin: 0px;
+            }
+
+        }
+    }    
+
+
+    // scss for settings/create.blade
+    #create{
+
+        text-align: center;
+
+        #dataAboutServer{
+
+            cursor: pointer;
+            position: absolute;
+            display: flex;
+            flex-wrap: nowrap;
+
+            #generalData{
+                position: absolute;
+            }
+
+            #serverSettings{
+                position: relative;
+                display: none;
+                left: 1000px;
+
+            
+            }
+
+            label{
+                margin: 0px 2.5vh;
+                cursor: pointer;
+            }
+
+            h2{
+                margin-bottom: 5vh;
+            }
+
+            p{
+                margin: 1vh;
+                font-size: 1.1rem;
+                font-weight: bold;
+            }
+
+            select, input{
+                border-radius: 1vh;
+                padding: 0.5vh 0.75vh;
+                cursor: pointer;
+                outline: none;
+            }
+
+            input.insertData{
+                width: 35%;
+            }
+            
+            .text-muted{
+                color:rgb(104, 180, 255) !important; 
+            }
+
+            button{
+                outline: none;
+            }
+            
+            #submit{
+                padding: 0.375rem 0.75rem;
+                font-size: 1rem;
+                line-height: 1.6;
+                border-radius: 0.25rem;
+                outline: none;
+            }
+
+            .error{
+                display: none;
+                color: rgb(255, 104, 104);
+            }
+
+        }
+
+        .hidden{
+            display: none;
+        }
+
+    }
+
+    
+
+}
+
