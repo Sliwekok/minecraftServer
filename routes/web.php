@@ -27,9 +27,10 @@ Route::middleware(['auth'])->prefix('settings')->group(function () {
     Route::get('/files', 'ServerMenagmentController@files');
     Route::get('/console', 'ServerMenagmentController@console');
     Route::get('/logs', 'ServerMenagmentController@logs');
-    Route::get('/action', 'ServerMenagmentController@action');
-
+    
+    Route::post('/action', 'ServerMenagmentController@action');
     Route::post('/create', 'ServerMenagmentController@createPOST');
+    Route::post('/sendCommand', 'ServerMenagmentController@sendCommand');
 });
 
 Route::middleware(['auth'])->prefix('account')->group(function () {

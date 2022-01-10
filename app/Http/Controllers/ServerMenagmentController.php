@@ -57,7 +57,20 @@ class ServerMenagmentController extends Controller
             return redirect('/settings/create');
         }
 
-        return view('settings.console');
+        $server = DB::table('servers')->where('owner', $user)->get();
+        $messages = DB::table('servers')->get();
+
+        return view('settings.console', [
+            'messages'  => $messages,
+            'server'    => $server,
+        ]);
+    }
+
+    public function sendCommand(Request $request){
+
+        $answer = $request->input('command');
+
+        return $answer;
 
     }
 
@@ -186,6 +199,9 @@ class ServerMenagmentController extends Controller
             return back()->withInput($request->all());
         }
 
+        // add link to have a way to get back
+        $server_data += [ 'link' => '<a href="/settings/">powrót</a>' ];         
+
         return Response::json($server_data);
         
     }
@@ -193,10 +209,9 @@ class ServerMenagmentController extends Controller
     public function action(){
         $user = Auth::user()->name;
         $server = DB::table('servers')->where('owner', $user);
-        $ServerData = $server->first();
 
-        if($ServerData->status == 'online') $callback = $this->stopServer($user, $server);
-        if($ServerData->status == 'offline') $callback = $this->startUpServer($user, $server);
+        if($server->first()->status == 'online') $callback = $this->stopServer($user, $server);
+        if($server->first()->status == 'offline') $callback = $this->startUpServer($user, $server);
 
         return $callback;
     }
@@ -204,19 +219,46 @@ class ServerMenagmentController extends Controller
     // start up server
     private function startUpServer($user, $server){
 
-        $server->update(['status' => 'online']);
+ 
+        // exec('cd', $path);
+        // $file = $path.'/servers/user_created/'.$user.'/'.$server->first()->name.'/start.bat';
+        // $runFile = exec($file, $output);
+        
+        // if($runFile){
+        //     // $server->update(['status' => 'online']);
+        //     return($output);
+        // }
+        // else{
+        //     return('error');
+        // }   
+        // exec("test.bat", $output);
 
-        return 'on';
+        $file = 'servers/user_created/'.$user.'/'.$server->first()->name.'/start.bat';
+        $handle = fopen($file, 'r');
+        
+        if ($handle){
+            $output = '';
+            while (!feof($handle)){
+                $output = $output . $handle;    // get output line-by-line
+            }
+            pclose($handle);
+        }
+        return($output);
 
     }
 
     // stop server
     private function stopServer($user, $server){
-
-        $server->update(['status' => 'offline']);
-
-        return 'off';
-
+        
+        // $titledProccess = $server->owner.$server->name;
+        // $killCommand = "taskkill /IM '$titledProccess' /F";
+        // if(shell_exec($killCommand)){
+            $server->update(['status' => 'offline']);
+            return 'ok';
+        // }
+        // else{
+        //     return 'error';
+        // }
     }
 
     // find free port to a server
@@ -237,7 +279,6 @@ class ServerMenagmentController extends Controller
 
     // that function creates config file.
     private function createConfigFile($server_data, $path){
-
         $global_config = <<<EOD
             #Minecraft server properties
             #(timestamp of first initializing)
@@ -306,9 +347,17 @@ class ServerMenagmentController extends Controller
 
     // here .bat files is created to allow starting up .jar server file
     private function createBatch($server_data, $path){
+        $file = $path.'/start.bat';
+        // it allows finding that exact server running
+        $fileTitle =  $server_data['owner'].$server_data['name'];
+        // bat file to run server. 1GB ram minimum, 1,5GB max
+        $content = "title $fileTitle \n java -Xms1024M -Xmx1536M -jar start.jar";
+        $createFile = Storage::disk('servers')->put($file, $content);
 
-        
-
+        if(!$createFile){
+            return false;
+        }
+        return true;
     }
 
 }

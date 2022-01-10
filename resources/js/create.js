@@ -2,7 +2,7 @@
 $(function (){
     // add some animations while creating new server
     // animate 'add' button to show 1st part of form
-    $('#create > #add').click(function(){
+    $('#create > #add').on('click', function(){
 
         $('#create > #add, #messageNoServers')
             .animate({
@@ -16,7 +16,7 @@ $(function (){
         $("#create > #dataAboutServer").fadeIn(500);
     });
     // animate 'next' button to slide to 2nd part of form
-    $('#create').find("#generalData > .next").click(function(){
+    $('#create').find("#generalData > .next").on('click', function(){
 
         // sprawdzanie czy nazwa serwera, wersja i jego opis jest uzupełniony poprawnie
         if( $('#serverName').val().length == 0 || $('#serverName').val().length > 64 ){
@@ -61,7 +61,7 @@ $(function (){
             .css("display", "block");
     });
     //animate button 'previous' to slide back to previous part of form
-    $('#create').find("#serverSettings > .previous").click(function(){
+    $('#create').find("#serverSettings > .previous").on('click', function(){
         $('#create').find('#serverSettings')
             .animate({
                 opacity: 0,

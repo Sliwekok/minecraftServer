@@ -205,7 +205,64 @@ main{
 
     }
 
-    
+    // scss for settings/console.blade
+    #console{
+        #messages{
+            width: 100%;
+            min-height: 70vh;
+            max-height: 70vh;
+            display: inline-flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1vh;
+
+            .row:nth-child(even){
+                background-color: lighten($bg-color, 15);
+            }
+
+            .message{
+                min-height: 5vh;
+                max-height: 5vh;
+                width: 100%;
+                padding: 0.5rem 1rem;
+            }
+        }
+        #sendCommand{
+            width: 100%;
+            padding: 0px;
+
+            .error{
+                color: $error;
+            }
+            #command{
+                width: 100%;
+                background-color: $bg-color;
+                color: rgb(206, 236, 255);
+                margin: 0px;
+
+                &::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+                    color: $info;
+                    opacity: 1; /* Firefox */
+                }
+                &:-ms-input-placeholder { /* Internet Explorer 10-11 */
+                    color: $info;
+                }
+                &::-ms-input-placeholder { /* Microsoft Edge */
+                    color: $info;
+                }
+            }
+            #sendSubmitWithFontello{
+                font-family: icons;
+                position: absolute;
+                right: 0;
+                top: 0;
+                background-color:rgba(255, 255, 255, 0.185);
+                color: $font-color;
+                width: 7.5%;
+            }
+        }
+    }
 
 }
 

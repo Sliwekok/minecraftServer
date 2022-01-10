@@ -111,6 +111,53 @@ __webpack_require__(/*! ./create.js */ "./resources/js/create.js");
 
 __webpack_require__(/*! ./index.js */ "./resources/js/index.js");
 
+__webpack_require__(/*! ./console.js */ "./resources/js/console.js");
+
+/***/ }),
+
+/***/ "./resources/js/console.js":
+/*!*********************************!*\
+  !*** ./resources/js/console.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+$(function () {
+  // This file is handling console menagment as showing messages etc
+  var container = $('#console'),
+      form = container.find($('form#sendCommand')),
+      messages = container.find('#messages'),
+      command = form.find('#command'); // scroll to the bottom of .console div 
+
+  function scrollToBottom() {
+    messages.scrollTop($("#messages")[0].scrollHeight);
+  }
+
+  form.on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: '/settings/sendCommand',
+      type: 'post',
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      },
+      data: {
+        command: command.val()
+      },
+      error: function error(_error) {
+        console.log(_error);
+      },
+      success: function success() {
+        if ($('#noCommandsFound').length) messages.empty();
+        var message = '<div class="row"><div class="col-12 message"><span>' + command.val() + '</span></div></div>';
+        messages.append(message);
+        command.val('').select();
+        scrollToBottom();
+      }
+    });
+  });
+});
+
 /***/ }),
 
 /***/ "./resources/js/create.js":
@@ -124,7 +171,7 @@ __webpack_require__(/*! ./index.js */ "./resources/js/index.js");
 $(function () {
   // add some animations while creating new server
   // animate 'add' button to show 1st part of form
-  $('#create > #add').click(function () {
+  $('#create > #add').on('click', function () {
     $('#create > #add, #messageNoServers').animate({
       opacity: 0,
       left: "-500",
@@ -133,7 +180,7 @@ $(function () {
     $("#create > #dataAboutServer").fadeIn(500);
   }); // animate 'next' button to slide to 2nd part of form
 
-  $('#create').find("#generalData > .next").click(function () {
+  $('#create').find("#generalData > .next").on('click', function () {
     // sprawdzanie czy nazwa serwera, wersja i jego opis jest uzupełniony poprawnie
     if ($('#serverName').val().length == 0 || $('#serverName').val().length > 64) {
       $('#errorServerName').text('Wprowadź poprawną długość znaków').show(0);
@@ -166,7 +213,7 @@ $(function () {
     }, 500).css("display", "block");
   }); //animate button 'previous' to slide back to previous part of form
 
-  $('#create').find("#serverSettings > .previous").click(function () {
+  $('#create').find("#serverSettings > .previous").on('click', function () {
     $('#create').find('#serverSettings').animate({
       opacity: 0,
       left: "500",
@@ -214,13 +261,31 @@ $(function () {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
+$(function () {// js for index file on home page
+});
+
+/***/ }),
+
+/***/ "./resources/js/settings.js":
+/*!**********************************!*\
+  !*** ./resources/js/settings.js ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
 $(function () {
-  var container = $('#serverFound'); // depending on status (given in class and data parameter) change #generalData background-color
+  // on click on .menuItem in dashboard.blade change current site    
+  $('.redirect').on('click', function () {
+    window.location.href = $(this).attr("data-page-redirect");
+    if ($(this).attr("data-page-redirect") == "/settings/account") window.location.href = "/account";
+  });
+  var container = $('#serverFound'),
+      generalData = container.find('#generalData'),
+      serverAction = container.find('#serverAction'); // depending on status (given in class and data parameter) change background-color for 2 divs
 
   function changeBackgroundStatus() {
-    var box = container.find('#generalData'),
-        status = box.attr("data-server-status");
-    color = '';
+    var status = generalData.attr("data-server-status"),
+        color = '';
 
     switch (status) {
       case 'online':
@@ -236,12 +301,13 @@ $(function () {
         break;
     }
 
-    box.find('#onlineStatus').css('background-color', color);
+    generalData.find('#onlineStatus').css('background-color', color);
+    serverAction.css('background-color', color);
   }
 
   changeBackgroundStatus();
   container.find('p#copy[data-toggle="tooltip"]') // copy ip of server 
-  .click(function () {
+  .on('click', function () {
     // var tekst = navigator.clipboard.writeText(zmienna.val());
     alert('WIP - potrzeba HTTPS / localhosta by dzialalo, Copy:' + $(this).text()); // let user know he has copied ip
 
@@ -253,69 +319,48 @@ $(function () {
 
   $('#dashboard').find('.menuItem').hover(function () {
     $(this).find('span.arrowRedirect').toggle();
-  });
-  container.find('#serverAction').click(function () {
-    var caption = $(this).find('p#caption');
-    caption.html('Szukanie diamentów ...').css({
-      backgroundcolor: 'rgb(128, 128, 128)',
-      userselect: 'none'
-    });
+  }); // serverAction.on('click', function(){
+
+  $(document).on('click', '#serverAction', function () {
+    serverAction.css({
+      'background-color': 'rgb(128, 128, 128)'
+    }).find('p#caption span').html('Szukanie diamentów ...');
     $.ajax({
       url: '/settings/action',
-      type: 'get',
+      type: 'post',
       headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
       },
       error: function error(_error) {
-        caption.html('nie działa :(((( <i class="icon-off"></i>').css({
-          backgroundcolor: 'rgb(142, 255, 90)',
-          userselect: 'auto'
-        });
-        console.log(_error);
-        refreshDiv(container.find('#generalData'), '/settings/');
+        console.log("=========");
+        console.log(_error); // refreshDiv(serverAction.find('p#caption').parent(), '/settings/' + ' #serverAction');
+        // refreshDiv(generalData.parent(), '/settings/' + ' #generalData');
+        // refreshDiv(generalData, '/settings/', '#generalData');  
+        // refreshDiv(serverAction, '/settings/', '#serverAction');  
       },
-      success: function success() {
-        caption.html('działa!!! <i class="icon-off"></i>').css({
-          backgroundcolor: 'rgb(142, 255, 90)',
-          userselect: 'auto'
-        });
-        refreshDiv(container.find('#generalData'), '/settings/');
+      success: function success(data) {
+        // refreshDiv(serverAction.find('p#caption').parent(), '/settings/' + ' #serverAction');
+        // refreshDiv(generalData.parent(), '/settings/' + ' #generalData');     
+        if (data == 'error') {
+          alert(data);
+        }
+
+        console.log(data);
+        refreshDiv(serverAction, '/settings/', '#serverAction');
+        refreshDiv(generalData, '/settings/', '#generalData');
       }
-    }); // refresh the container with new data
-
-    function refreshDiv(div, url) {
-      var parentDiv = div.parent(),
-          loadedDiv = url + ' #generalData'; // jquery .load loads into that container, so we need to go 1 div upper 
-
-      parentDiv.load(loadedDiv, function () {
-        changeBackgroundStatus();
-        enableTooltips();
-      });
-    }
+    });
   });
-});
+}); // refresh the container with new data
 
-/***/ }),
+function refreshDiv(div, url, requestedContainer) {
+  var parentDiv = div.parent(),
+      loadedDiv = url + ' ' + requestedContainer; // jquery .load loads into that container, so we need to go 1 div upper 
 
-/***/ "./resources/js/settings.js":
-/*!**********************************!*\
-  !*** ./resources/js/settings.js ***!
-  \**********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-$(function () {
-  // on click on .menuItem in dashboard.blade change current site    
-  $('.redirect').click(function () {
-    window.location.href = $(this).attr("data-page-redirect");
-    if ($(this).attr("data-page-redirect") == "/settings/account") window.location.href = "/account";
-  }); // if alert is visible - autofade him after 15 seconds
-  // wip
-
-  setTimeout(function () {
-    $('alert').alert('close');
-  }, 1500);
-});
+  parentDiv.load(loadedDiv, function () {
+    changeBackgroundStatus(); // enableTooltips();
+  });
+}
 
 /***/ }),
 

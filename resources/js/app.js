@@ -12,3 +12,4 @@ function enableTooltips() {
 require('./settings.js');
 require('./create.js');
 require('./index.js');
+require('./console.js');
