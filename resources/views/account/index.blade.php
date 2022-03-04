@@ -4,7 +4,7 @@
 
     <div class="row">
 
-        user
+        account settgings page
 
     </div>
 

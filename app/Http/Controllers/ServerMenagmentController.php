@@ -107,18 +107,6 @@ class ServerMenagmentController extends Controller
 
     }
 
-    // check if user already has some servers. implementation of all functions as a check out
-    private function hasServer($user){
-        $servers = DB::table('servers')->where('owner', $user)->get();
-
-        if($servers->count() == 0){
-        
-            return false;
-
-        }
-        return true;
-    }
-
     // function that creates server with user given data
     public function createPOST(Request $request){
 
@@ -175,15 +163,6 @@ class ServerMenagmentController extends Controller
         // path is: storage/app/servers/user_created/[username]/[serverName]
         $path = 'user_created/'.$user.'/'.$server_data['name'];
         
-        
-        // create config file 
-        $config = $this->createConfigFile($server_data, $path);
-        $batch = $this->createBatch($server_data, $path);
-        if(!$config || !$batch){
-            $request->session()->flash('error', "Nastąpił błąd z tworzeniem plików konfiguracyjnych");
-            return back()->withInput($request->all());
-        }
-        
         // check if directory exists with the same server name
         if(!Storage::disk('servers')->exists($path)){
             Storage::disk('servers')->makeDirectory($path);
@@ -192,15 +171,22 @@ class ServerMenagmentController extends Controller
             $request->session()->flash('error', "Nazwa jest już zajęta");
             return back()->withInput($request->all());
         }
+        
+        // create config file 
+        $config = $this->createConfigFile($server_data, $path);
+        $batch = $this->createBatch($server_data, $path);
+        $moveServerFile = $this->moveServerFile($server_data['version'], $path);
+        if(!$config || !$batch || !$moveServerFile){
+            $request->session()->flash('error', "Nastąpił błąd z tworzeniem plików konfiguracyjnych");
+            return back()->withInput($request->all());
+        }
+        
 
         // save in database
         if(!DB::table('servers')->insert($server_data)){
             $request->session()->flash('error', "Nastąpił błąd z bazą danych");
             return back()->withInput($request->all());
         }
-
-        // add link to have a way to get back
-        $server_data += [ 'link' => '<a href="/settings/">powrót</a>' ];         
 
         return Response::json($server_data);
         
@@ -216,49 +202,88 @@ class ServerMenagmentController extends Controller
         return $callback;
     }
 
+    public function deleteServer(Request $request){
+        $user = Auth::user()->name;
+        if($this->hasServer($user) === false){
+            return redirect('/settings/create');
+        }
+
+        $server     = DB::table('servers')->where('owner', $user);
+        $serverName = $server->first()->name;
+        $serverFiles= 'user_created/'.$user.'/'.$serverName;
+
+        $deleteFiles = Storage::disk('servers')->deleteDirectory($serverFiles);
+        $deleteFromDatabase = $server->delete();
+
+        if(!$deleteFiles || !$deleteFromDatabase){
+            $request->session()->flash('error', "Błąd z usuwaniem plików konfiguracyjnych");
+            return back()->withInput($request->all());
+        }
+
+        $request->session()->flash('success', "Serwer został usunięty");
+        return redirect('/settings');
+    }
+
+    // check if user already has some servers. implementation of all functions as a check out
+    private function hasServer($user){
+        $servers = DB::table('servers')->where('owner', $user)->get();
+
+        if($servers->count() == 0){
+        
+            return false;
+
+        }
+        return true;
+    }
+
     // start up server
     private function startUpServer($user, $server){
 
- 
-        // exec('cd', $path);
-        // $file = $path.'/servers/user_created/'.$user.'/'.$server->first()->name.'/start.bat';
-        // $runFile = exec($file, $output);
+        $result = 0;
+        $output = [];
+        // $file = '/user_created/'.$user.'/'.$server->first()->name.'/start.bat';
+        // $file = Storage::disk('servers')->url('user_created/'.$user.'/'.$server->first()->name.'/start.bat');
+        // $file = Storage::disk('servers')->get('user_created/'.$user.'/'.$server->first()->name.'/start.bat');
+
+        // absolute path to server start
+        $path = "C:\Programy\Laragon\laragon\www\minecraftServer\storage\app\servers\user_created/".$user.'/'.$server->first()->name.'/server.jar';
+        // $command = "java -Xms1024M -Xmx1536M -jar $path 2>&1";
+        $command = "$path 2>&1";
+        exec($command, $output, $result);
+        if($result !== 0) {
+            return var_dump($output);
+        }
+        else{
+            // $server->update(['status' => 'online']);
+            return('Serwer już działa!');
+        }
         
-        // if($runFile){
-        //     // $server->update(['status' => 'online']);
-        //     return($output);
+        // $output = shell_exec($command);
+        // if(!$output){
+        //     return ("Problem z uruchomieniem serwera");
         // }
         // else{
-        //     return('error');
-        // }   
-        // exec("test.bat", $output);
-
-        $file = 'servers/user_created/'.$user.'/'.$server->first()->name.'/start.bat';
-        $handle = fopen($file, 'r');
-        
-        if ($handle){
-            $output = '';
-            while (!feof($handle)){
-                $output = $output . $handle;    // get output line-by-line
-            }
-            pclose($handle);
-        }
-        return($output);
-
+        //     // $server->update(['status' => 'online']);
+        //     return $output;
+        // }
     }
 
     // stop server
     private function stopServer($user, $server){
         
-        // $titledProccess = $server->owner.$server->name;
-        // $killCommand = "taskkill /IM '$titledProccess' /F";
-        // if(shell_exec($killCommand)){
+        // the way proccess is names is always the same: owner.server_name
+        $titledProccess = $server->first()->owner.$server->first()->name;
+        $killCommand = "taskkill /IM $titledProccess /F 2>&1";
+        $result = 0;
+        $output = [];
+        exec($killCommand, $output, $result);
+        if($result != 0) {
+            return var_dump($output);
+        }
+        else{
             $server->update(['status' => 'offline']);
-            return 'ok';
-        // }
-        // else{
-        //     return 'error';
-        // }
+            return('Serwer wyłączony');
+        }  
     }
 
     // find free port to a server
@@ -275,6 +300,15 @@ class ServerMenagmentController extends Controller
 
         return $i;
 
+    }
+
+    // Get a requested MC server version and copy it to the server directory
+    private function moveServerFile($version, $path){
+        // find original server file
+        $source = 'server_files/server-'.$version.'.jar';
+        $move = Storage::disk('servers')->copy($source, $path.'/server.jar');
+        if($move) return true;
+        else return false;
     }
 
     // that function creates config file.
@@ -351,7 +385,7 @@ class ServerMenagmentController extends Controller
         // it allows finding that exact server running
         $fileTitle =  $server_data['owner'].$server_data['name'];
         // bat file to run server. 1GB ram minimum, 1,5GB max
-        $content = "title $fileTitle \n java -Xms1024M -Xmx1536M -jar start.jar";
+        $content = "title $fileTitle \njava -Xms1024M -Xmx1536M -jar server.jar 2>&1";
         $createFile = Storage::disk('servers')->put($file, $content);
 
         if(!$createFile){

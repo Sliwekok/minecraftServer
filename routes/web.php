@@ -21,13 +21,13 @@ Route::get('/', 'HomeController@index');
 Route::middleware(['auth'])->prefix('settings')->group(function () {
     Route::get('/', 'ServerMenagmentController@index');
     Route::get('/menagment', 'ServerMenagmentController@menagment');
-    Route::get('/mods', 'ServerMenagmentController@mods');
     Route::get('/players', 'ServerMenagmentController@players');
     Route::get('/create', 'ServerMenagmentController@create');
     Route::get('/files', 'ServerMenagmentController@files');
     Route::get('/console', 'ServerMenagmentController@console');
     Route::get('/logs', 'ServerMenagmentController@logs');
     
+    Route::post('/deleteServer', 'ServerMenagmentController@deleteServer');
     Route::post('/action', 'ServerMenagmentController@action');
     Route::post('/create', 'ServerMenagmentController@createPOST');
     Route::post('/sendCommand', 'ServerMenagmentController@sendCommand');

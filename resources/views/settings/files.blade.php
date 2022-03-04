@@ -4,7 +4,7 @@
 
     <div class="row">
 
-        mods
+        menagment
 
     </div>
 

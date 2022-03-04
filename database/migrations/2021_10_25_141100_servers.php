@@ -15,7 +15,7 @@ class Servers extends Migration
     {
         Schema::create('servers', function (Blueprint $table) {
             $table->id();
-            $table->string('status')->default('online'); // statusy mogą być online, offline, banned, wip
+            $table->string('status')->default('offline'); // statusy mogą być online, offline, banned, wip
             $table->string('owner');
             $table->string('ip')->default('localhost');
             $table->string('port')->default('25565');
